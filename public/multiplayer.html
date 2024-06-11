@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color game</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1><a href="/" class="home">Color game</a></h1>
+    </header>
+
+    <article id="main">
+      <div id="selection">
+        <div id="username">
+          Nazwa użytkownika:
+          <input type="text" name="usernameInput" id="usernameInput" />
+        </div>
+        <div id="join">
+          <form id="joinForm">
+            Dołącz do pokoju:
+            <input type="text" name="lobbyId" id="lobby_id" maxlength="6" />
+            <input type="submit" value="Dołącz" />
+          </form>
+        </div>
+        <div id="create">
+          <form id="createForm">
+            <input type="submit" value="Stwórz pokój" />
+          </form>
+        </div>
+      </div>
+    </article>
+
+    <footer>
+      <div id="author">
+        Created by <a href="https://github.com/erhandoe">erhandoe</a>
+      </div>
+
+      <div id="source">
+        <a href="https://github.com/erhandoe/color-game">Github</a>
+      </div>
+    </footer>
+    <script src="/js/changeColor.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      socket.emit("selection", true);
+
+      const createForm = document.getElementById("createForm");
+      const joinForm = document.getElementById("joinForm");
+      const lobbyId = document.getElementById("lobby_id");
+      const usernameInput = document.getElementById("usernameInput");
+      let clientUsername = "";
+      let createdId = "";
+
+      createForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if (usernameInput.value) {
+          socket.emit("createLobby", usernameInput.value);
+          clientUsername = usernameInput.value;
+        }
+      });
+      joinForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (lobbyId.value.length == 6 && usernameInput.value) {
+          socket.emit("joinLobby", lobbyId.value, usernameInput.value);
+          clientUsername = usernameInput.value;
+          lobbyId.value = "";
+        }
+      });
+
+      socket.on("createdLobby", (id, username) => {
+        createdId = id;
+        document.getElementById("main").innerHTML =
+          "<div>Czekanie na gracza. . . Lobby id: <b>" + id + "</b></div>";
+      });
+
+      let joinedId = "";
+      socket.on("joinedLobby", (id, username) => {
+        joinedId = id;
+        document.getElementById("main").innerHTML =
+          "<div>Czekanie na gracza. . . Lobby id: <b>" + id + "</b></div>";
+      });
+
+      socket.on("twoUsers", (roomId) => {
+        console.log(clientUsername);
+        socket.emit("lobbyReady", clientUsername);
+        document.getElementById("main").innerHTML = "<div></div>";
+      });
+
+      let enemyUsername = "";
+
+      socket.on("players", (players) => {
+        let gamefield = document.getElementById("main");
+
+        let myUsername = clientUsername;
+        enemyUsername = "";
+        if (players[0] == clientUsername) {
+          enemyUsername = players[1];
+        } else {
+          enemyUsername = players[0];
+        }
+
+        socket.emit("enemyPlayer", enemyUsername);
+
+        gamefield.classList.add("game");
+
+        gamefield.innerHTML = ``;
+
+        gamefield.innerHTML +=
+          "<h2>" + clientUsername + " vs " + enemyUsername + "</h2>";
+
+        gamefield.innerHTML += `<div id="setup">\
+            <div class='w' onclick=selected(this)></div>\
+            <div class='w' onclick=selected(this)></div>\
+            <div class='w' onclick=selected(this)></div>\
+            <div class='w' onclick=selected(this)></div>\
+            </div>`;
+
+        gamefield.innerHTML += `<div id="colorSelection">\
+            <button class='color' id='r' onclick='selectedRed()'>Czerwony</button>\
+            <button class='color' id='b' onclick='selectedBlue()'>Niebieski</button>\
+            <button class='color' id='y' onclick='selectedYellow()'>Żółty</button>\
+            <button class='color' id='g' onclick='selectedGreen()'>Zielony</button>\
+            </div>`;
+
+        gamefield.innerHTML += `<div id="readyDiv">\
+            <button id='ready' onclick=ready(socket)>Gotowy</button>\
+            </div>`;
+      });
+
+      socket.on("gamePhase", () => {
+        socket.emit("getColors");
+        let gamefield = document.getElementById("main");
+        gamefield.innerHTML = "";
+        gamefield.classList.remove("game");
+        gamefield.classList.add("board");
+
+        gamefield.innerHTML +=
+          "<h2>" + clientUsername + " vs " + enemyUsername + "</h2>";
+
+        gamefield.innerHTML += `
+        <div id=win></div>
+        <div id=turn></div>
+        <div class="top">
+
+            <div class="clientSetup">
+                <h3>Twoje ustawienie</h3>
+                <div id="setupDwa">
+                    <div class='wD'></div>
+                    <div class='wD'></div>
+                    <div class='wD'></div>
+                    <div class='wD'></div>
+                </div>
+            </div>
+            <div class="enemyGuess">
+                <h3>Strzał przeciwnika</h3>
+                <div id="setupDwa">
+                    <div class='wD wE'></div>
+                    <div class='wD wE'></div>
+                    <div class='wD wE'></div>
+                    <div class='wD wE'></div>
+                    <h4 id=enemyScore>0/4</h4>
+                </div>
+            </div>
+        </div>
+        <div class=guessing>
+            <div id="setup">
+                <div class='w' onclick=selected(this)></div>
+                <div class='w' onclick=selected(this)></div>
+                <div class='w' onclick=selected(this)></div>
+                <div class='w' onclick=selected(this)></div>
+                <h4 id=score>0/4</h4>
+            </div>
+            <div id="colorSelection">
+                <button class='color' id='r' onclick='selectedRed()'>Czerwony</button>
+                <button class='color' id='b' onclick='selectedBlue()'>Niebieski</button>
+                <button class='color' id='y' onclick='selectedYellow()'>Żółty</button>
+                <button class='color' id='g' onclick='selectedGreen()'>Zielony</button>
+            </div>
+            <div id="readyDiv">
+                <button id='shoot' onclick='shoot(socket, clientTurn)'>Strzelaj</button>
+            </div>
+        </div>
+        `;
+      });
+
+      let clientTurn = false;
+      socket.on("enemyTurn", () => {
+        document.getElementById("turn").innerHTML =
+          "<h3><i>Tura przeciwnika</i></h3>";
+      });
+
+      socket.on("clientTurn", () => {
+        document.getElementById("turn").innerHTML = "<h3><i>Twoja tura<i></h3>";
+        clientTurn = true;
+      });
+
+      let clientColors = [];
+      socket.on("sentColors", (colors) => {
+        clientColors = colors;
+        let divItems = document.getElementsByClassName("wD");
+
+        for (var i = 0; i < divItems.length; i++) {
+          var item = divItems[i];
+          item.classList.add(colors[i]);
+        }
+      });
+
+      socket.on("clientGuess", (guess) => {
+        document.getElementById("turn").innerHTML =
+          "<h3><i>Tura przeciwnika</i></h3>";
+        document.getElementById("score").innerHTML = guess + "/4";
+        if (guess == 4) {
+          document.getElementById("win").innerHTML =
+            "<h2>WYGRALES! <br/>" +
+            `<button onClick="window.location.reload();">Wyjdź</button></h2>`;
+          document.getElementById("readyDiv").innerHTML = "";
+        }
+        clientTurn = false;
+      });
+
+      socket.on("enemyGuess", (guess, score) => {
+        document.getElementById("turn").innerHTML = "<h3><i>Twoja tura<i></h3>";
+        let divItems2 = document.getElementsByClassName("w");
+
+        for (var i = 0; i < divItems2.length; i++) {
+          var item = divItems2[i];
+          item.classList.remove("r");
+          item.classList.remove("y");
+          item.classList.remove("b");
+          item.classList.remove("g");
+        }
+        document.getElementById("enemyScore").innerHTML = score + "/4";
+        let divItems = document.getElementsByClassName("wE");
+
+        for (var i = 3; i < divItems.length; i++) {
+          var item = divItems[i];
+          item.classList.remove("r");
+          item.classList.remove("y");
+          item.classList.remove("b");
+          item.classList.remove("g");
+        }
+
+        for (var i = 0; i < divItems.length; i++) {
+          var item = divItems[i];
+          item.classList.add(guess[i]);
+        }
+
+        if (score == 4) {
+          document.getElementById("win").innerHTML =
+            "<h2>PRZEGRALES :( " +
+            `<button onClick="window.location.reload();">Wyjdź</button></h2>`;
+          document.getElementById("readyDiv").innerHTML = "";
+        }
+
+        clientTurn = true;
+      });
+    </script>
+  </body>
+</html>

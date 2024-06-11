@@ -1,0 +1,178 @@
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 98%;
+}
+
+header {
+    padding: 1%;
+}
+
+article {
+    flex: 1;
+    display: flex;
+    padding: 1%;
+    justify-content: center;
+    align-items: center;
+}
+
+footer {
+    padding: 1%;
+}
+
+header > h1 {
+    text-align: center;
+    padding: 0px;
+    margin: 0px;
+    margin-top: 25px;
+}
+
+#author {
+    float: left;
+    /* width: fit-content; */
+}
+
+#source {
+    float: right;
+    /* width: fit-content; */
+}
+
+a {
+    color: rgb(61, 61, 61);
+    font-style: italic;
+}
+
+#buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: fit-content;
+}
+
+.menu_selection {
+    width: 200px;
+    padding: 20px;
+    margin: 10px;
+    font-size: larger;
+    border-radius: 5px;
+}
+
+#lobby_id {
+    width: 100px;
+}
+
+#join {
+    margin: 5px;
+}
+
+#create {
+    text-align: center;
+    margin: 5px;
+}
+
+#selection {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+#colorSelection {
+    display: flex;
+    flex-direction: row;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+#colorSelection > button {
+    margin: 5px;
+}
+
+.game {
+    display: flex;
+    flex-direction: column;
+}
+
+#readyDiv {
+    margin: 20px;
+}
+
+.w {
+    border: 1px solid black;
+    width: 70px;
+    height: 70px;
+    margin: 5px;
+}
+
+#setup {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+}
+
+.r {
+    background-color: red;
+}
+
+.b {
+    background-color: blue;
+}
+
+.y {
+    background-color: yellow;
+}
+
+.g {
+    background-color: green;
+}
+
+.board {
+    display: flex;
+    flex-direction: column;
+}
+
+#setupDwa {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+}
+
+.wD {
+    border: 1px solid black;
+    width: 45px;
+    height: 45px;
+    margin: 3px;
+}
+
+.top {
+    display: flex;
+    flex-direction: row;
+}
+
+.guessing {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.guessing > div {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.top > div {
+    text-align: center;
+}
+
+.home {
+    color: black;
+    text-decoration: none;
+    font-style: normal;
+}
